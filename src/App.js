@@ -1,25 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { createContext, useState } from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
 
-function App() {
+import TraceExplorer from './TraceExplorer';
+
+export const TraceContext = createContext();
+
+export default function App(props) {
+  const [trace, setTrace] = useState(props.trace);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <TraceContext.Provider value={[trace, setTrace]}>
+      <Container fluid>
+        <Row className="justify-content-md-center">
+          <Col md="auto">
+            <h1>Materialize <code>EXPLAIN</code> trace explorer</h1>
+          </Col>
+        </Row>
+        <TraceExplorer />
+      </Container>
+    </TraceContext.Provider>
   );
 }
-
-export default App;
