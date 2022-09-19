@@ -1,35 +1,43 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import { Alert, Row, Col, Container } from 'react-bootstrap';
 
 import { TraceContext } from './App';
 
 const TraceExplorerContext = createContext();
 
-function TraceExplorer() {
+export default function TraceExplorer() {
   const [trace] = useContext(TraceContext);
   const [state, setState] = useState({ focus: [] });
 
-  return (
-    <TraceExplorerContext.Provider value={[state, setState]}>
-      <Row>
-        <Col xs={2}>
-          <TraceNav entry={trace.tree} />
-        </Col>
-        <Col>
-          <TraceView />
-        </Col>
-      </Row>
-    </TraceExplorerContext.Provider>
-  );
-}
-
-function TraceNav({ entry }) {
-  return (
-    <>
-      <h3>trace</h3>
-      <TraceNavChildren children={[entry]} />
-    </>
-  )
+  if (trace.error) {
+    return (
+      <Container>
+        <Row>
+          <Col>
+            <Alert variant="danger">
+              <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+              <p>{trace.error}</p>
+            </Alert>
+          </Col>
+        </Row>
+      </Container>
+    );
+  } else if (trace.tree && trace.index) { // assuming well-defined trace below
+    return (
+      <TraceExplorerContext.Provider value={[state, setState]}>
+        <Container fluid>
+          <Row>
+            <Col xs={3}>
+              <TraceNavChildren children={[trace.tree]} />
+            </Col>
+            <Col>
+              <TraceView />
+            </Col>
+          </Row>
+        </Container>
+      </TraceExplorerContext.Provider>
+    );
+  }
 }
 
 function TraceNavChildren({ children }) {
@@ -54,7 +62,7 @@ function TraceNavNode({ node }) {
     });
   }
 
-  const segment = node.path.split('.').pop();
+  const segment = node.path.split('/').pop();
 
   if (node.children) {
     return <li>
@@ -68,30 +76,33 @@ function TraceNavNode({ node }) {
   }
 }
 
+// TODO: use diff-based view here. Options are:
+// 1) http://incaseofstairs.com/jsdiff/
+// 2) 
 function TraceView() {
   const [trace] = useContext(TraceContext);
-  const [state] = useContext(TraceExplorerContext);
+  const [explorer_state] = useContext(TraceExplorerContext);
 
-  if (state.focus.length === 2) {
-    let lhs = trace.index[state.focus[0]];
-    let rhs = trace.index[state.focus[1]];
+  if (explorer_state.focus.length === 2) {
+    let lhs = trace.index[explorer_state.focus[0]];
+    let rhs = trace.index[explorer_state.focus[1]];
     return (
       <Row>
         <Col>
-          <h3>{lhs.path}</h3>
+          <h6>{lhs.path.split("/").map(segment => <span>{segment}</span>).reduce((prev, curr) => [prev, ' / ', curr])}</h6>
           <pre><code>{lhs.plan}</code></pre>
         </Col>
         <Col>
-          <h3>{rhs.path}</h3>
+          <h6>{rhs.path.split("/").map(segment => <span>{segment}</span>).reduce((prev, curr) => [prev, ' / ', curr])}</h6>
           <pre><code>{rhs.plan}</code></pre>
         </Col>
       </Row>
     );
-  } else if (state.focus.length === 1) {
-    let entry = trace.index[state.focus[0]];
+  } else if (explorer_state.focus.length === 1) {
+    let entry = trace.index[explorer_state.focus[0]];
     return (
       <>
-        <h3>{entry.path}</h3>
+        <h6>{entry.path.split("/").map(segment => <span>{segment}</span>).reduce((prev, curr) => [prev, ' / ', curr])}</h6>
         <pre><code>{entry.plan}</code></pre>
       </>
     );
@@ -101,5 +112,3 @@ function TraceView() {
     );
   }
 }
-
-export default TraceExplorer;
