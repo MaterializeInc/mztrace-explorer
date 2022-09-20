@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Col, Container, Form, Row } from 'react-bootstrap';
 
-import { TraceContext, toTraceTree, indexTraceTree } from './App';
+import { TraceContext, computeActiveFlag, toTraceTree, indexTraceTree } from './App';
 
 export default function TraceSelector(props) {
   const setTrace = useContext(TraceContext).at(1);
@@ -16,6 +16,11 @@ export default function TraceSelector(props) {
 
         const tree = toTraceTree(trace.list);
         const index = indexTraceTree(tree);
+
+        // mark nodes with a plan identical to their predecessor with 'noop: true'
+        computeActiveFlag(index);
+
+        console.log(tree);
 
         // If everything is fine the index should be for the same number of entries
         // and for the same sequence of paths (we check only the former here).

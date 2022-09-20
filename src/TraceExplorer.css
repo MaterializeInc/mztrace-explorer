@@ -1,0 +1,49 @@
+button.nav-button {
+    padding: 0;
+    margin: 0;
+    border: none;
+    display: inline;
+    text-decoration: none;
+}
+
+button.nav-button.active,
+button.nav-button:active,
+button.nav-button:hover {
+    text-decoration: underline;
+}
+
+ul.trace-nav {
+    padding-left: 0;
+}
+
+ul.trace-nav ul.trace-nav {
+    padding-left: 2rem;
+}
+
+ul.trace-nav li {
+    list-style-type: none;
+    white-space: nowrap;
+}
+
+ul.trace-nav .caret::before {
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+    content: "\229E";
+}
+
+ul.trace-nav .caret-open::before {
+    content: "\229F";
+}
+
+ul.trace-nav .nocaret::before {
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+    content: "\22A1";
+}
+
+/* Hide the nested list */
+ul.trace-nav-closed {
+    display: none;
+}

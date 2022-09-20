@@ -27,6 +27,7 @@ export default function App(props) {
   );
 }
 
+/** Convert the given list of traces to a tree-shaped structure. */
 export function toTraceTree(traceList) {
   // initialize root tree
   let traceTree = {
@@ -66,15 +67,30 @@ export function toTraceTree(traceList) {
   // assert that a unique root node exists
   console.assert(traceTree.children.length === 1, "Root node is not unique.");
 
-  // console.log(traceTree.children.at(0));
+  // console.log(traceTree.children[0]);
   // return unique root node
-  return traceTree.children.at(0);
+  return traceTree.children[0];
 }
 
+/** Create an index to the nodes in the given `traceTree` in ascending post-visit order. */
 export function indexTraceTree(traceTree) {
   let traceIndex = postOrder(traceTree);
   traceIndex.sort((a, b) => a.id < b.id);
   return traceIndex;
+}
+
+/** Mark nodes with a plan identical to their predecessor with 'noop: true'. */
+export function computeActiveFlag(traceIndex) {
+  for (var curr = 0; curr < traceIndex.length; curr++) {
+    // find index of last non-descendant predecessor
+    const desc = new Set(descendants(traceIndex[curr]));
+    const pred = traceIndex.slice(0, curr).findLastIndex(node => !desc.has(node));
+
+    console.log(`${traceIndex[pred]?.path} is the last non-descendant of ${traceIndex[curr].path}`)
+
+    // if findLastIndex fails, pred will be -1 and traceIndex[pred]?.plan will be undefined
+    traceIndex[curr].noop = traceIndex[curr].plan === traceIndex[pred]?.plan;
+  }
 }
 
 function postOrder(traceTree) {
@@ -86,13 +102,17 @@ function postOrder(traceTree) {
   }
 }
 
+function descendants(node) {
+  return node.children.flatMap(child => descendants(child)).concat(node.children);
+}
+
 function WizardNav(props) {
   return (
     <Container fluid>
       <Row className="wizard-nav justify-content-md-center">
         <Col md="auto">
-          <Button variant={props.currentStep === 1 ? 'primary' : 'secondary'} onClick={() => props.goToStep(1)}>select</Button>{' '}
-          <Button variant={props.currentStep === 2 ? 'primary' : 'secondary'} onClick={() => props.goToStep(2)}>explore</Button>
+          <Button variant={props.currentStep === 1 ? 'primary' : 'secondary'} onClick={() => props.goToStep(1)}>1. select trace</Button>{' '}
+          <Button variant={props.currentStep === 2 ? 'primary' : 'secondary'} onClick={() => props.goToStep(2)}>2. explore trace</Button>
         </Col>
       </Row>
     </Container>
