@@ -11,7 +11,7 @@ const TraceExplorerContext = createContext();
 
 export default function TraceExplorer() {
   const [trace] = useContext(TraceContext);
-  const [state, setState] = useState([]);
+  const [state, setState] = useState({ plans: [], vbarOffset: 0 });
 
   if (trace.error) {
     return (
@@ -67,13 +67,16 @@ function TraceNav({ root }) {
         ...state,
         active: id
       }));
-      setExplorerState(explorerState => ([
+      setExplorerState(explorerState => ({
         ...explorerState,
-        {
-          path: trace.index[id].path,
-          plan: trace.index[id].plan
-        }
-      ].slice(-2)));
+        plans: [
+          ...explorerState.plans,
+          {
+            path: trace.index[id].path,
+            plan: trace.index[id].plan
+          }
+        ].slice(-2)
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextKeyPress, trace]);
@@ -88,13 +91,16 @@ function TraceNav({ root }) {
         ...state,
         active: id
       }));
-      setExplorerState(explorerState => ([
+      setExplorerState(explorerState => ({
         ...explorerState,
-        {
-          path: trace.index[id].path,
-          plan: trace.index[id].plan
-        }
-      ].slice(-2)));
+        plans: [
+          ...explorerState.plans,
+          {
+            path: trace.index[id].path,
+            plan: trace.index[id].plan
+          }
+        ].slice(-2)
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevKeyPress, trace]);
@@ -124,31 +130,35 @@ function TraceNav({ root }) {
   }
 
   const showSQL = (event) => {
-    setExplorerState([
-      {
-        path: "SQL query",
-        plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee)
-      }
-    ]);
+    setExplorerState(explorerState => ({
+      ...explorerState,
+      plans: [
+        {
+          path: "SQL query",
+          plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee)
+        }
+      ]
+    }));
+    event.preventDefault();
+  }
+
+  const resetExplorer = (event) => {
+    setExplorerState(explorerState => ({
+      ...explorerState,
+      plans: []
+    }));
     event.preventDefault();
   }
 
   return (
     <TraceNavContext.Provider value={[state, setState]}>
       <div>
+        <Button className='nav-button' variant="link" onClick={resetExplorer}>reset</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>
       </div>
       <TraceNavChildren children={[root]} parentId={-1} />
-      <div>
-        Key-based navigation:
-        <ul>
-          <li>(<strong>p</strong>)revious item</li>
-          <li>(<strong>n</strong>)ext item</li>
-          <li>(<strong>c</strong>)opy current item to clipboard</li>
-        </ul>
-      </div>
     </TraceNavContext.Provider >
   );
 }
@@ -178,13 +188,16 @@ function TraceNavNode({ node }) {
       ...state,
       active: id
     });
-    setExplorerState([
+    setExplorerState({
       ...explorerState,
-      {
-        path: trace.index[id].path,
-        plan: trace.index[id].plan
-      }
-    ].slice(-2));
+      plans: [
+        ...explorerState.plans,
+        {
+          path: trace.index[id].path,
+          plan: trace.index[id].plan
+        }
+      ].slice(-2)
+    });
     event.preventDefault();
   }
 
@@ -233,42 +246,72 @@ function TraceNavNode({ node }) {
 // 2) https://www.npmjs.com/package/vis-react (demo at https://codesandbox.io/s/3vvy7xqo9m?file=/src/index.js)
 function TraceView() {
   const [explorer_state] = useContext(TraceExplorerContext);
+  // key-based navigation state
+  const vbarOffsetDecKeyPress = useKeyPress("d");
+  const vbarOffsetIncKeyPress = useKeyPress("i");
 
-  if (explorer_state.length === 2) {
-    const [lhs, rhs] = explorer_state;
+  // key-based navigation handlers
+  useEffect(() => {
+    if (vbarOffsetDecKeyPress && explorer_state.vbarOffset > 0) {
+      explorer_state.vbarOffset -= 1;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vbarOffsetDecKeyPress, explorer_state.vbarOffset]);
+  useEffect(() => {
+    if (vbarOffsetIncKeyPress) {
+      explorer_state.vbarOffset += 1;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vbarOffsetIncKeyPress, explorer_state.vbarOffset]);
 
-    const path = diffWords(lhs.path, rhs.path).map((part, i) => {
+  const vbar = "  ".repeat(explorer_state.vbarOffset);
+  let path = "";
+  let plan = "";
+
+  if (explorer_state.plans.length === 1) {
+    path = explorer_state.plans[0].path;
+    plan = explorer_state.plans[0].plan;
+  } else if (explorer_state.plans.length === 2) {
+    const [lhs, rhs] = explorer_state.plans;
+
+    path = diffWords(lhs.path, rhs.path).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
       const span = <span key={`plan-span-${i}`} className={type}>{part.value}</span>;
       return span;
     });
 
-    const plan = diffLines(lhs.plan, rhs.plan, { "ignoreWhitespace": false }).map((part, i) => {
+    plan = diffLines(lhs.plan, rhs.plan, { "ignoreWhitespace": false }).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
       const span = <span key={`path-span-${i}`} className={type}>{part.value}</span>;
       return span;
     });
-
-    return (
-      <Row id="explorer">
-        <Col>
-          <h4>{path}</h4>
-          <pre><code>{plan}</code></pre>
-        </Col>
-      </Row>
-    );
-  } else if (explorer_state.length === 1) {
-    return (
-      <Row id="explorer">
-        <Col>
-          <h4>{explorer_state[0].path}</h4>
-          <pre><code>{explorer_state[0].plan}</code></pre>
-        </Col>
-      </Row>
-    );
   } else {
-    return <></>;
+    return (
+      <Row id="explorer">
+        <Col>
+          <h4>Key-based navigation</h4>
+          <p>Use the following keys to navigate the trace.</p>
+          <ul>
+            <li>(<strong>p</strong>)revious item</li>
+            <li>(<strong>n</strong>)ext item</li>
+            <li>(<strong>c</strong>)opy current item to clipboard</li>
+            <li>(<strong>d</strong>)ecrement vertical guide</li>
+            <li>(<strong>i</strong>)ncrement vertical guide</li>
+          </ul>
+          <p>Press the <strong>reset</strong> button on the top of the navigation bar to see this page again.</p>
+        </Col>
+      </Row>
+    );
   }
+
+  return (
+    <Row id="explorer">
+      <Col>
+        <h4>{path}</h4>
+        <pre><code className="vbar">{vbar}</code><code className="plan">{plan}</code></pre>
+      </Col>
+    </Row>
+  );
 }
 
 // React hook for key-based navigation.

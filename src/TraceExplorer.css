@@ -52,11 +52,34 @@ ul.trace-nav-closed {
 span.ins {
     text-decoration: none;
     color: rgba(64, 102, 25, 1);
-    background: rgba(64, 102, 25, 0.1);
+    background: rgba(64, 102, 25, 0.05);
 }
 
 span.del {
     text-decoration: none;
     color: rgba(179, 0, 0, 1);
-    background: rgba(179, 0, 0, 0.1);
+    background: rgba(179, 0, 0, 0.05);
+}
+
+/* WIP: vertical guides styling */
+#explorer pre {
+    position: relative;
+    display: block;
+    top: 0;
+    left: 0;
+    line-height: normal;
+}
+
+#explorer pre code.vbar {
+    border-right: 1px solid #dddddd;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0ch;
+    z-index: 10;
+}
+
+#explorer pre code.plan {
+    display: block;
+    z-index: 100;
 }
