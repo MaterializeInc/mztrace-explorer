@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { diffWords, diffLines } from 'diff';
 
 import { TraceContext } from './App';
 
@@ -10,10 +11,7 @@ const TraceExplorerContext = createContext();
 
 export default function TraceExplorer() {
   const [trace] = useContext(TraceContext);
-  const [state, setState] = useState({
-    path: trace.index[0]?.path,
-    plan: trace.index[0]?.plan
-  });
+  const [state, setState] = useState([]);
 
   if (trace.error) {
     return (
@@ -50,7 +48,7 @@ const TraceNavContext = createContext();
 
 function TraceNav({ root }) {
   const [trace] = useContext(TraceContext);
-  const [explorerState, setExplorerState] = useContext(TraceExplorerContext);
+  const setExplorerState = useContext(TraceExplorerContext).at(1);
   const [state, setState] = useState({ active: 0, closed: [] });
   // key-based navigation state
   const nextKeyPress = useKeyPress("n");
@@ -69,11 +67,13 @@ function TraceNav({ root }) {
         ...state,
         active: id
       }));
-      setExplorerState(explorerState => ({
+      setExplorerState(explorerState => ([
         ...explorerState,
-        path: trace.index[id].path,
-        plan: trace.index[id].plan
-      }));
+        {
+          path: trace.index[id].path,
+          plan: trace.index[id].plan
+        }
+      ].slice(-2)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextKeyPress, trace]);
@@ -88,11 +88,13 @@ function TraceNav({ root }) {
         ...state,
         active: id
       }));
-      setExplorerState(explorerState => ({
+      setExplorerState(explorerState => ([
         ...explorerState,
-        path: trace.index[id].path,
-        plan: trace.index[id].plan
-      }));
+        {
+          path: trace.index[id].path,
+          plan: trace.index[id].plan
+        }
+      ].slice(-2)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevKeyPress, trace]);
@@ -122,11 +124,12 @@ function TraceNav({ root }) {
   }
 
   const showSQL = (event) => {
-    setExplorerState({
-      ...explorerState,
-      path: "SQL query",
-      plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee)
-    });
+    setExplorerState([
+      {
+        path: "SQL query",
+        plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee)
+      }
+    ]);
     event.preventDefault();
   }
 
@@ -175,11 +178,13 @@ function TraceNavNode({ node }) {
       ...state,
       active: id
     });
-    setExplorerState({
+    setExplorerState([
       ...explorerState,
-      path: trace.index[id].path,
-      plan: trace.index[id].plan
-    });
+      {
+        path: trace.index[id].path,
+        plan: trace.index[id].plan
+      }
+    ].slice(-2));
     event.preventDefault();
   }
 
@@ -229,14 +234,41 @@ function TraceNavNode({ node }) {
 function TraceView() {
   const [explorer_state] = useContext(TraceExplorerContext);
 
-  return (
-    <Row id="explorer">
-      <Col>
-        <h4>{explorer_state.path}</h4>
-        <pre><code>{explorer_state.plan}</code></pre>
-      </Col>
-    </Row>
-  );
+  if (explorer_state.length === 2) {
+    const [lhs, rhs] = explorer_state;
+
+    const path = diffWords(lhs.path, rhs.path).map((part, i) => {
+      const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
+      const span = <span key={`plan-span-${i}`} className={type}>{part.value}</span>;
+      return span;
+    });
+
+    const plan = diffLines(lhs.plan, rhs.plan, { "ignoreWhitespace": false }).map((part, i) => {
+      const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
+      const span = <span key={`path-span-${i}`} className={type}>{part.value}</span>;
+      return span;
+    });
+
+    return (
+      <Row id="explorer">
+        <Col>
+          <h4>{path}</h4>
+          <pre><code>{plan}</code></pre>
+        </Col>
+      </Row>
+    );
+  } else if (explorer_state.length === 1) {
+    return (
+      <Row id="explorer">
+        <Col>
+          <h4>{explorer_state[0].path}</h4>
+          <pre><code>{explorer_state[0].plan}</code></pre>
+        </Col>
+      </Row>
+    );
+  } else {
+    return <></>;
+  }
 }
 
 // React hook for key-based navigation.

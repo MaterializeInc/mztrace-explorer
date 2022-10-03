@@ -47,3 +47,16 @@ ul.trace-nav .nocaret::before {
 ul.trace-nav-closed {
     display: none;
 }
+
+/* diff styling */
+span.ins {
+    text-decoration: none;
+    color: rgba(64, 102, 25, 1);
+    background: rgba(64, 102, 25, 0.1);
+}
+
+span.del {
+    text-decoration: none;
+    color: rgba(179, 0, 0, 1);
+    background: rgba(179, 0, 0, 0.1);
+}
