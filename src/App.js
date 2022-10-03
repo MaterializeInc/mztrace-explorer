@@ -67,7 +67,6 @@ export function toTraceTree(traceList) {
   // assert that a unique root node exists
   console.assert(traceTree.children.length === 1, "Root node is not unique.");
 
-  // console.log(traceTree.children[0]);
   // return unique root node
   return traceTree.children[0];
 }
@@ -85,8 +84,6 @@ export function computeActiveFlag(traceIndex) {
     // find index of last non-descendant predecessor
     const desc = new Set(descendants(traceIndex[curr]));
     const pred = traceIndex.slice(0, curr).findLastIndex(node => !desc.has(node));
-
-    console.log(`${traceIndex[pred]?.path} is the last non-descendant of ${traceIndex[curr].path}`)
 
     // if findLastIndex fails, pred will be -1 and traceIndex[pred]?.plan will be undefined
     traceIndex[curr].noop = traceIndex[curr].plan === traceIndex[pred]?.plan;

@@ -20,8 +20,6 @@ export default function TraceSelector(props) {
         // mark nodes with a plan identical to their predecessor with 'noop: true'
         computeActiveFlag(index);
 
-        console.log(tree);
-
         // If everything is fine the index should be for the same number of entries
         // and for the same sequence of paths (we check only the former here).
         console.assert(trace.list.length === index.length, "Trace list and trace index sizesdon't match.");

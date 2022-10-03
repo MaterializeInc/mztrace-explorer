@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
@@ -11,8 +11,8 @@ const TraceExplorerContext = createContext();
 export default function TraceExplorer() {
   const [trace] = useContext(TraceContext);
   const [state, setState] = useState({
-    path: "",
-    plan: ""
+    path: trace.index[0]?.path,
+    plan: trace.index[0]?.plan
   });
 
   if (trace.error) {
@@ -51,7 +51,58 @@ const TraceNavContext = createContext();
 function TraceNav({ root }) {
   const [trace] = useContext(TraceContext);
   const [explorerState, setExplorerState] = useContext(TraceExplorerContext);
-  const [state, setState] = useState({ active: undefined, closed: [] });
+  const [state, setState] = useState({ active: 0, closed: [] });
+  // key-based navigation state
+  const nextKeyPress = useKeyPress("n");
+  const prevKeyPress = useKeyPress("p");
+  const copyKeyPress = useKeyPress("c");
+
+  // key-based navigation handlers
+  useEffect(() => {
+    if (nextKeyPress && state.active !== undefined) {
+      const currPlan = trace.index.at(state.active).plan;
+      const slice = trace.index.slice(state.active, trace.index.length);
+      const offset = slice.findIndex(entry => currPlan !== entry.plan);
+      const id = (offset >= 0) ? state.active + offset : 0;
+      // console.log(`active=${id}, offset=${offset}`);
+      setState(state => ({
+        ...state,
+        active: id
+      }));
+      setExplorerState(explorerState => ({
+        ...explorerState,
+        path: trace.index[id].path,
+        plan: trace.index[id].plan
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextKeyPress, trace]);
+  useEffect(() => {
+    if (prevKeyPress && state.active !== undefined) {
+      const prevPlan = trace.index.at(state.active - 1).plan;
+      const slice = trace.index.slice(0, state.active);
+      const offset = slice.findIndex(entry => prevPlan === entry.plan);
+      const id = (offset >= 0) ? offset : trace.index.length - 1;
+      // console.log(`active=${id}, offset=${offset}`);
+      setState(state => ({
+        ...state,
+        active: id
+      }));
+      setExplorerState(explorerState => ({
+        ...explorerState,
+        path: trace.index[id].path,
+        plan: trace.index[id].plan
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prevKeyPress, trace]);
+  useEffect(() => {
+    if (window.isSecureContext && copyKeyPress && state.active !== undefined) {
+      const node = trace.index.at(state.active);
+      navigator.clipboard.writeText(node.path + '\n' + node.plan);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copyKeyPress, trace]);
 
   const hideAll = (event) => {
     setState({
@@ -81,11 +132,21 @@ function TraceNav({ root }) {
 
   return (
     <TraceNavContext.Provider value={[state, setState]}>
-      <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
-      <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
-      <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>
+      <div>
+        <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
+        <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
+        <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>
+      </div>
       <TraceNavChildren children={[root]} parentId={-1} />
-    </TraceNavContext.Provider>
+      <div>
+        Key-based navigation:
+        <ul>
+          <li>(<strong>p</strong>)revious item</li>
+          <li>(<strong>n</strong>)ext item</li>
+          <li>(<strong>c</strong>)opy current item to clipboard</li>
+        </ul>
+      </div>
+    </TraceNavContext.Provider >
   );
 }
 
@@ -177,3 +238,33 @@ function TraceView() {
     </Row>
   );
 }
+
+// React hook for key-based navigation.
+// Taken from https://codesandbox.io/s/react-hooks-navigate-list-with-keyboard-eowzo.
+const useKeyPress = function (targetKey) {
+  const [keyPressed, setKeyPressed] = useState(false);
+
+  function downHandler({ key }) {
+    if (key === targetKey) {
+      setKeyPressed(true);
+    }
+  }
+
+  const upHandler = ({ key }) => {
+    if (key === targetKey) {
+      setKeyPressed(false);
+    }
+  };
+
+  React.useEffect(() => {
+    window.addEventListener("keydown", downHandler);
+    window.addEventListener("keyup", upHandler);
+
+    return () => {
+      window.removeEventListener("keydown", downHandler);
+      window.removeEventListener("keyup", upHandler);
+    };
+  });
+
+  return keyPressed;
+};
