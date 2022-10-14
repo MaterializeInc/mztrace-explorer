@@ -108,8 +108,8 @@ function WizardNav(props) {
     <Container fluid>
       <Row className="wizard-nav justify-content-md-center">
         <Col md="auto">
-          <Button variant={props.currentStep === 1 ? 'primary' : 'secondary'} onClick={() => props.goToStep(1)}>1. select trace</Button>{' '}
-          <Button variant={props.currentStep === 2 ? 'primary' : 'secondary'} onClick={() => props.goToStep(2)}>2. explore trace</Button>
+          <Button variant={props.currentStep === 1 ? 'primary' : 'secondary'} onClick={() => props.goToStep(1)}>1. Select trace</Button>{' '}
+          <Button variant={props.currentStep === 2 ? 'primary' : 'secondary'} onClick={() => props.goToStep(2)}>2. Explore trace</Button>
         </Col>
       </Row>
     </Container>
