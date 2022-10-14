@@ -112,6 +112,14 @@ function TraceNav({ root }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copyKeyPress, trace]);
 
+  const resetExplorer = (event) => {
+    setExplorerState(explorerState => ({
+      ...explorerState,
+      plans: []
+    }));
+    event.preventDefault();
+  }
+
   const hideAll = (event) => {
     setState({
       ...state,
@@ -142,11 +150,24 @@ function TraceNav({ root }) {
     event.preventDefault();
   }
 
-  const resetExplorer = (event) => {
-    setExplorerState(explorerState => ({
-      ...explorerState,
-      plans: []
-    }));
+  const download = (event) => {
+    // data
+    const data = new Blob([JSON.stringify({
+      explainee: trace.explainee,
+      list: trace.index.map(entry => ({
+        "id": entry.id,
+        "time": entry.time,
+        "path": entry.path,
+        "plan": entry.plan,
+      })),
+    }, null, 4)], { type: "text/plain" });
+    // create and click download link
+    const link = document.createElement("a");
+    link.download = "trace.json";
+    link.href = URL.createObjectURL(new Blob([data], { type: "text/plain" }));
+    link.click();
+    link.remove();
+    // prevent default action
     event.preventDefault();
   }
 
@@ -156,7 +177,8 @@ function TraceNav({ root }) {
         <Button className='nav-button' variant="link" onClick={resetExplorer}>reset</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>
+        <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>{' | '}
+        <Button className='nav-button' variant="link" onClick={download}>download</Button>
       </div>
       <TraceNavChildren children={[root]} parentId={-1} />
     </TraceNavContext.Provider >
