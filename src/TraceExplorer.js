@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { diffWords, diffArrays } from 'diff';
 
@@ -267,34 +267,35 @@ function TraceNavNode({ node }) {
 // TODO: use dot view. Shortlisted options are:
 // 2) https://www.npmjs.com/package/vis-react (demo at https://codesandbox.io/s/3vvy7xqo9m?file=/src/index.js)
 function TraceView() {
-  const [explorer_state] = useContext(TraceExplorerContext);
+  const [explorerState] = useContext(TraceExplorerContext);
+  const [showAttrs, setShowAttrs] = useState(false);
   // key-based navigation state
   const vbarOffsetDecKeyPress = useKeyPress("d");
   const vbarOffsetIncKeyPress = useKeyPress("i");
 
   // key-based navigation handlers
   useEffect(() => {
-    if (vbarOffsetDecKeyPress && explorer_state.vbarOffset > 0) {
-      explorer_state.vbarOffset -= 1;
+    if (vbarOffsetDecKeyPress && explorerState.vbarOffset > 0) {
+      explorerState.vbarOffset -= 1;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vbarOffsetDecKeyPress, explorer_state.vbarOffset]);
+  }, [vbarOffsetDecKeyPress, explorerState.vbarOffset]);
   useEffect(() => {
     if (vbarOffsetIncKeyPress) {
-      explorer_state.vbarOffset += 1;
+      explorerState.vbarOffset += 1;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vbarOffsetIncKeyPress, explorer_state.vbarOffset]);
+  }, [vbarOffsetIncKeyPress, explorerState.vbarOffset]);
 
-  const vbar = "  ".repeat(explorer_state.vbarOffset);
+  const vbar = "  ".repeat(explorerState.vbarOffset);
   let path = "";
   let plan = "";
 
-  if (explorer_state.plans.length === 1) {
-    path = explorer_state.plans[0].path;
-    plan = explorer_state.plans[0].plan;
-  } else if (explorer_state.plans.length === 2) {
-    const [lhs, rhs] = explorer_state.plans;
+  if (explorerState.plans.length === 1) {
+    path = explorerState.plans[0].path;
+    plan = explorerState.plans[0].plan;
+  } else if (explorerState.plans.length === 2) {
+    const [lhs, rhs] = explorerState.plans;
 
     path = diffWords(lhs.path, rhs.path).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
@@ -305,10 +306,19 @@ function TraceView() {
     const lhs_lines = lhs.plan.trim().split(/\n/);
     const rhs_lines = rhs.plan.trim().split(/\n/);
     const cmp_lines = (l, r) => l.trimStart() === r.trimStart();
-    plan = diffArrays(lhs_lines, rhs_lines, { comparator: cmp_lines }).map((part, i) => {
+    var line_no = 1;
+    plan = diffArrays(lhs_lines, rhs_lines, { comparator: cmp_lines }).flatMap((part) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
-      const span = <span key={`path-span-${i}`} className={type}>{part.value.join('\n') + '\n'}</span>;
-      return span;
+      return part.value.map(line => {
+        const attributes_pos = line.match(new RegExp(String.raw`( // {.+})$`))?.index || line.length;
+        return (
+          <div key={`diff-l${line_no++}`} className={type}>
+            <span>{line.slice(0, attributes_pos)}</span>
+            <span className="attributes">{line.slice(attributes_pos)}</span>
+            <span>{'\n'}</span>
+          </div>
+        );
+      });
     });
   } else {
     return (
@@ -330,12 +340,19 @@ function TraceView() {
   }
 
   return (
-    <Row id="explorer">
-      <Col>
-        <h4>{path}</h4>
-        <pre><code className="vbar">{vbar}</code><code className="plan">{plan}</code></pre>
-      </Col>
-    </Row>
+    <>
+      <Row id="explorer">
+        <Col>
+          <h4>{path}</h4>
+          <pre><code className="vbar">{vbar}</code><code className={showAttrs ? 'plan' : 'plan noattrs'}>{plan}</code></pre>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Form.Check type="switch" id="custom-switch" isValid={showAttrs} onChange={(_) => setShowAttrs(toggle => !toggle)} label="Show all attributes" />
+        </Col>
+      </Row>
+    </>
   );
 }
 

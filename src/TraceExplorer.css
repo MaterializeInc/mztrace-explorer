@@ -49,16 +49,47 @@ ul.trace-nav-closed {
 }
 
 /* diff styling */
-span.ins {
-    text-decoration: none;
+.ins {
     color: rgba(64, 102, 25, 1);
     background: rgba(64, 102, 25, 0.05);
 }
 
-span.del {
-    text-decoration: none;
+.ins .attributes {
+    color: rgba(64, 102, 25, 0.5);
+}
+
+.del {
     color: rgba(179, 0, 0, 1);
     background: rgba(179, 0, 0, 0.05);
+}
+
+.del .attributes {
+    color: rgba(179, 0, 0, 0.5);
+}
+
+.same {
+    color: rgba(0, 0, 0, 1);
+    background: rgb(255, 255, 255);
+}
+
+.same .attributes {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.noattrs .attributes {
+    display: none;
+}
+
+.noattrs div.ins:hover .attributes {
+    display: initial;
+}
+
+.noattrs div.del:hover .attributes {
+    display: initial;
+}
+
+.noattrs div.same:hover .attributes {
+    display: initial;
 }
 
 /* WIP: vertical guides styling */
