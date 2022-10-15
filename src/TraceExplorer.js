@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { diffWords, diffLines } from 'diff';
+import { diffWords, diffArrays } from 'diff';
 
 import { TraceContext } from './App';
 
@@ -302,9 +302,12 @@ function TraceView() {
       return span;
     });
 
-    plan = diffLines(lhs.plan, rhs.plan, { "ignoreWhitespace": false }).map((part, i) => {
+    const lhs_lines = lhs.plan.trim().split(/\n/);
+    const rhs_lines = rhs.plan.trim().split(/\n/);
+    const cmp_lines = (l, r) => l.trimStart() === r.trimStart();
+    plan = diffArrays(lhs_lines, rhs_lines, { comparator: cmp_lines }).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
-      const span = <span key={`path-span-${i}`} className={type}>{part.value}</span>;
+      const span = <span key={`path-span-${i}`} className={type}>{part.value.join('\n') + '\n'}</span>;
       return span;
     });
   } else {
