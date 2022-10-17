@@ -291,11 +291,10 @@ function TraceView() {
   let path = "";
   let plan = "";
 
-  if (explorerState.plans.length === 1) {
-    path = explorerState.plans[0].path;
-    plan = explorerState.plans[0].plan;
-  } else if (explorerState.plans.length === 2) {
-    const [lhs, rhs] = explorerState.plans;
+  console.assert(explorerState.plans.length <= 2, "Explorer state has less than two plans");
+
+  if (explorerState.plans.length > 0) { // 1 or 2 plans
+    const [lhs, rhs] = [explorerState.plans.at(0), explorerState.plans.at(-1)]; // might be the same
 
     path = diffWords(lhs.path, rhs.path).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
