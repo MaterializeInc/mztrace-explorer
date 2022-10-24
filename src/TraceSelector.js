@@ -40,6 +40,7 @@ function GenerateTraceFromSQL(props) {
     const scheme = event.target.generateTraceFromSql_scheme.value;
     const host = event.target.generateTraceFromSql_host.value;
     const port = event.target.generateTraceFromSql_port.value;
+    const database = event.target.generateTraceFromSql_database.value;
     const username = event.target.generateTraceFromSql_username.value;
     const password = event.target.generateTraceFromSql_password.value;
     // request query
@@ -50,19 +51,19 @@ function GenerateTraceFromSQL(props) {
       event.target.generateTraceFromSql_explainee.value
     ].join("\n");
 
-    await axios({
-      method: 'post',
-      url: `${scheme}://${host}:${port}/api/sql`,
+    await axios.post(`${scheme}://${host}:${port}/api/sql`, {
+      "query": database ? `SET database = "${database}"; ${query}` : query
+    }, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${(username + ":" + password).toString('base64')}`
+        'Content-Type': 'application/json'
       },
-      data: JSON.stringify({
-        "query": query
-      })
+      auth: {
+        username: username,
+        password: password
+      }
     }).then(function (response) {
       try {
-        const results = response.data.results[0];
+        const results = response.data.results.at(-1);
 
         if (results.error) {
           throw results.error;
@@ -190,13 +191,16 @@ function GenerateTraceFromSQL(props) {
       <Form.Group as={Row} className="mb-3">
         <Form.Label column sm={3}>Server</Form.Label>
         <Col sm={1}>
-          <Form.Control type="input" id="generateTraceFromSql_scheme" defaultValue="http" placeholder="http" />
+          <Form.Control type="input" id="generateTraceFromSql_scheme" defaultValue="http" placeholder="scheme" />
         </Col>
-        <Col sm={6}>
+        <Col sm={5}>
           <Form.Control type="input" id="generateTraceFromSql_host" defaultValue="localhost" placeholder="host" />
         </Col>
         <Col sm={1}>
           <Form.Control type="input" id="generateTraceFromSql_port" defaultValue="6876" placeholder="port" />
+        </Col>
+        <Col sm={2}>
+          <Form.Control type="input" id="generateTraceFromSql_database" defaultValue="materialize" placeholder="database" />
         </Col>
       </Form.Group>
       <Form.Group as={Row} className="mb-3">
