@@ -19,7 +19,7 @@ export default function TraceExplorer() {
         <Row>
           <Col>
             <Alert variant="danger">
-              <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+              <Alert.Heading>Error while loading trace!</Alert.Heading>
               <p>{trace.error}</p>
             </Alert>
           </Col>

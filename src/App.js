@@ -12,7 +12,7 @@ export const TraceContext = createContext({
 
 export default function App(props) {
   const [trace, setTrace] = useState({
-    error: "foobar",
+    error: "No trace has been selected yet.",
     tree: {},
     index: []
   });
