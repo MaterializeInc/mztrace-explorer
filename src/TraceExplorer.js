@@ -60,7 +60,7 @@ function TraceNav({ root }) {
     if (nextKeyPress && state.active !== undefined) {
       const currPlan = trace.index.at(state.active).plan;
       const slice = trace.index.slice(state.active, trace.index.length);
-      const offset = slice.findIndex(entry => currPlan !== entry.plan);
+      const offset = slice.findIndex(entry => !entry.noop && entry.plan !== currPlan);
       const id = (offset >= 0) ? state.active + offset : 0;
       // console.log(`active=${id}, offset=${offset}`);
       setState(state => ({
@@ -82,9 +82,9 @@ function TraceNav({ root }) {
   }, [nextKeyPress, trace]);
   useEffect(() => {
     if (prevKeyPress && state.active !== undefined) {
-      const prevPlan = trace.index.at(state.active - 1).plan;
+      const currPlan = trace.index.at(state.active).plan;
       const slice = trace.index.slice(0, state.active);
-      const offset = slice.findIndex(entry => prevPlan === entry.plan);
+      const offset = slice.findLastIndex((entry, index) => !entry.noop && entry.plan !== currPlan && entry.plan !== slice.at(index - 1)?.plan);
       const id = (offset >= 0) ? offset : trace.index.length - 1;
       // console.log(`active=${id}, offset=${offset}`);
       setState(state => ({

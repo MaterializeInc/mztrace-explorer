@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useContext, useState } from 'react';
 import { Button, Col, Container, Form, Row, Tab, Tabs } from 'react-bootstrap';
 
-import { TraceContext, computeActiveFlag, toTraceTree, indexTraceTree } from './App';
+import { TraceContext, computeNoopFlag, toTraceTree, indexTraceTree } from './App';
 
 import './TraceSelector.css';
 
@@ -81,7 +81,7 @@ function GenerateTraceFromSQL(props) {
         const index = indexTraceTree(tree);
 
         // mark nodes with a plan identical to their predecessor with 'noop: true'
-        computeActiveFlag(index);
+        computeNoopFlag(index);
 
         // If everything is fine the index should be for the same number of entries
         // and for the same sequence of paths (we check only the former here).
@@ -240,7 +240,7 @@ function UploadTraceFile(props) {
         const index = indexTraceTree(tree);
 
         // mark nodes with a plan identical to their predecessor with 'noop: true'
-        computeActiveFlag(index);
+        computeNoopFlag(index);
 
         // If everything is fine the index should be for the same number of entries
         // and for the same sequence of paths (we check only the former here).

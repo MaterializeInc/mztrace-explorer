@@ -78,8 +78,8 @@ export function indexTraceTree(traceTree) {
   return traceIndex;
 }
 
-/** Mark nodes with a plan identical to their predecessor with 'noop: true'. */
-export function computeActiveFlag(traceIndex) {
+/** Mark nodes with a plan identical to their non-descendant predecessor with 'noop: true'. */
+export function computeNoopFlag(traceIndex) {
   for (var curr = 0; curr < traceIndex.length; curr++) {
     // find index of last non-descendant predecessor
     const desc = new Set(descendants(traceIndex[curr]));
