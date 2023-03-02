@@ -1,10 +1,9 @@
+import { diffArrays, diffWords } from 'diff';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { diffWords, diffArrays } from 'diff';
 
 import { TraceContext } from './App';
-
 import './TraceExplorer.css';
 
 const TraceExplorerContext = createContext();

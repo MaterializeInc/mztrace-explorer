@@ -1,10 +1,10 @@
 import React, { createContext, useState } from 'react';
-import { Button, Container, Row, Col } from 'react-bootstrap';
+import { Button, Col, Container, Row } from 'react-bootstrap';
 import StepWizard from "react-step-wizard";
-import TraceExplorer from './TraceExplorer';
-import TraceSelector from './TraceSelector';
 
 import './App.css';
+import TraceExplorer from './TraceExplorer';
+import TraceSelector from './TraceSelector';
 
 export const TraceContext = createContext({
   error: "No trace selected at the moment."

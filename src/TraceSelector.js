@@ -2,8 +2,7 @@ import axios from "axios";
 import React, { useContext, useState } from 'react';
 import { Button, Col, Container, Form, Row, Tab, Tabs } from 'react-bootstrap';
 
-import { TraceContext, computeNoopFlag, toTraceTree, indexTraceTree } from './App';
-
+import { computeNoopFlag, indexTraceTree, toTraceTree, TraceContext } from './App';
 import './TraceSelector.css';
 
 export default function TraceSelector(props) {
