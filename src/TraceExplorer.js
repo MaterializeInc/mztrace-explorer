@@ -359,14 +359,16 @@ function TraceView() {
 const useKeyPress = function (targetKey) {
   const [keyPressed, setKeyPressed] = useState(false);
 
-  function downHandler({ key }) {
-    if (key === targetKey) {
+  function downHandler(e) {
+    console.log(e);
+    if (e.key === targetKey && !e.ctrlKey) {
       setKeyPressed(true);
     }
   }
 
-  const upHandler = ({ key }) => {
-    if (key === targetKey) {
+  const upHandler = (e) => {
+    console.log(e);
+    if (e.key === targetKey && !e.ctrlKey) {
       setKeyPressed(false);
     }
   };
