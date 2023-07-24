@@ -166,6 +166,18 @@ function GenerateTraceFromSQL(props) {
       key: "subtree_size",
       label: <>Annotate sub-plans with their <code>subtree_size</code> value.</>
     },
+    {
+      key: "timing",
+      label: <>Print optimization timings after each stage.</>
+    },
+    {
+      key: "filter_pushdown",
+      label: <>Show MFP pushdown information.</>
+    },
+    {
+      key: "cardinality",
+      label: <>Show cardinality information.</>
+    },
   ];
 
   return (
