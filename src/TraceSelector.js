@@ -234,6 +234,8 @@ function UploadTraceFile(props) {
     fileReader.onload = (event) => {
       try {
         const trace = JSON.parse(event.target.result);
+        // Ensure that the list entries are ordered by id
+        trace.list.sort((a, b) => (a.id > b.id) ? 1 : -1);
 
         const tree = toTraceTree(trace.list);
         const index = indexTraceTree(tree);
