@@ -193,7 +193,7 @@ function GenerateTraceFromSQL(props) {
         <Col sm={9}>
           {explainConfigOptions.map((item) => (
             <Form.Check key={item.key} type="switch" id={item.key}>
-              <Form.Check.Input checked={explainConfig.includes(item.key) ? "checked" : undefined} isValid={explainConfig.includes(item.key)} onChange={handleConfigChange} />
+              <Form.Check.Input checked={explainConfig.includes(item.key)} isValid={explainConfig.includes(item.key)} onChange={handleConfigChange} />
               <Form.Check.Label>{item.label}</Form.Check.Label>
             </Form.Check>
           ))}
