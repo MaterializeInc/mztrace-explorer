@@ -30,6 +30,7 @@ export default function TraceSelector(props) {
 function GenerateTraceFromSQL(props) {
   const setTrace = useContext(TraceContext).at(1);
   const [explainConfig, setExplainConfig] = useState(["arity", "join_impls"]);
+  const [explainBroken, setExplainBroken] = useState(false);
   const [explaineeRows, setExplaineeRows] = useState(1);
 
   async function handleSubmit(event) {
@@ -46,7 +47,8 @@ function GenerateTraceFromSQL(props) {
     const explainee = event.target.generateTraceFromSql_explainee.value;
     const query = [
       'EXPLAIN OPTIMIZER TRACE',
-      explainConfig.length > 0 ? `WITH(${explainConfig.join(", ")}) AS TEXT FOR` : 'AS TEXT FOR',
+      explainConfig.length > 0 ? `WITH(${explainConfig.join(", ")}) AS TEXT ` : 'AS TEXT ',
+      explainBroken ? 'FOR BROKEN ' : 'FOR ',
       event.target.generateTraceFromSql_explainee.value
     ].join("\n");
 
@@ -125,6 +127,10 @@ function GenerateTraceFromSQL(props) {
     }
   };
 
+  const toggleExplainBroken = () => {
+    setExplainBroken(explainBroken => !explainBroken);
+  };
+
   const explainConfigOptions = [
     {
       key: "linear_chains",
@@ -197,6 +203,15 @@ function GenerateTraceFromSQL(props) {
               <Form.Check.Label>{item.label}</Form.Check.Label>
             </Form.Check>
           ))}
+        </Col>
+      </Form.Group>
+      <Form.Group as={Row} className="mb-3" controlId="generateTraceFromSql_explainConfig">
+        <Form.Label column sm={3}>Explain broken plan</Form.Label>
+        <Col sm={9}>
+          <Form.Check type="switch" id="generateTraceFromSql_explainBroken">
+            <Form.Check.Input checked={explainBroken} isValid={explainBroken} onChange={toggleExplainBroken} />
+            <Form.Check.Label>Supress optimizer pipeline panics.</Form.Check.Label>
+          </Form.Check>
         </Col>
       </Form.Group>
       <Form.Group as={Row} className="mb-3">
