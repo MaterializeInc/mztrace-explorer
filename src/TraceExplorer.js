@@ -360,14 +360,12 @@ const useKeyPress = function (targetKey) {
   const [keyPressed, setKeyPressed] = useState(false);
 
   function downHandler(e) {
-    console.log(e);
     if (e.key === targetKey && !e.ctrlKey) {
       setKeyPressed(true);
     }
   }
 
   const upHandler = (e) => {
-    console.log(e);
     if (e.key === targetKey && !e.ctrlKey) {
       setKeyPressed(false);
     }
