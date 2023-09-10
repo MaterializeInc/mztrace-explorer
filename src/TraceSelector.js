@@ -98,13 +98,15 @@ function GenerateTraceFromSQL(props) {
           index: index
         });
       } catch (error) {
+        console.log(error);
         setTrace({
-          error: error.toString()
+          error: JSON.stringify(error, undefined, 2)
         });
       }
     }).catch(function (error) {
+      console.log(error);
       setTrace({
-        error: error.toString()
+        error: JSON.stringify(error, undefined, 2)
       });
     });
 
