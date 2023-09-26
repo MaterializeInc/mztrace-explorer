@@ -186,6 +186,14 @@ function GenerateTraceFromSQL(props) {
       key: "cardinality",
       label: <>Show cardinality information.</>
     },
+    {
+      key: "column_names",
+      label: <>Show inferred column names.</>
+    },
+    {
+      key: "humanized_exprs",
+      label: <>Use inferred column names when rendering scalar and aggregate expressions.</>
+    },
   ];
 
   return (
