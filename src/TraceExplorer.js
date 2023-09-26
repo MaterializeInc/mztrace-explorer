@@ -49,6 +49,7 @@ function TraceNav({ root }) {
   const [trace] = useContext(TraceContext);
   const setExplorerState = useContext(TraceExplorerContext).at(1);
   const [state, setState] = useState({ active: 0, closed: [] });
+
   // key-based navigation state
   const nextKeyPress = useKeyPress("n");
   const prevKeyPress = useKeyPress("p");
@@ -79,6 +80,7 @@ function TraceNav({ root }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextKeyPress, trace]);
+
   useEffect(() => {
     if (prevKeyPress && state.active !== undefined) {
       const currPlan = trace.index.at(state.active).plan;
@@ -103,6 +105,7 @@ function TraceNav({ root }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevKeyPress, trace]);
+
   useEffect(() => {
     if (window.isSecureContext && copyKeyPress && state.active !== undefined) {
       const node = trace.index.at(state.active);
