@@ -52,17 +52,31 @@ function GenerateTraceFromSQL(props) {
       event.target.generateTraceFromSql_explainee.value
     ].join("\n");
 
-    await axios.post(`${scheme}://${host}:${port}/api/sql`, {
-      "query": database ? `SET database = "${database}"; ${query}` : query
-    }, {
+    // Construct the URL for the axios request.
+    const axios_url = (scheme === 'https' && port === '8080')
+      ? `https://${host}/api/sql`
+      : `${scheme}://${host}:${port}/api/sql`;
+
+    const axios_data = {
+      "query": database
+        ? `SET database = "${database}"; ${query}`
+        : `${query}`
+    };
+
+    // Construct the parameters for the axios request.
+    let axios_config = {
       headers: {
         'Content-Type': 'application/json'
-      },
-      auth: {
+      }
+    };
+    if (username || password) {
+      axios_config['auth'] = {
         username: username,
         password: password
-      }
-    }).then(function (response) {
+      };
+    }
+
+    await axios.post(axios_url, axios_data, axios_config).then(function (response) {
       try {
         const results = response.data.results.at(-1);
 
