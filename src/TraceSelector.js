@@ -29,7 +29,7 @@ export default function TraceSelector(props) {
 
 function GenerateTraceFromSQL(props) {
   const setTrace = useContext(TraceContext).at(1);
-  const [explainConfig, setExplainConfig] = useState(["arity", "join_impls"]);
+  const [explainConfig, setExplainConfig] = useState(["arity", "join_impls", "humanized_exprs"]);
   const [explainBroken, setExplainBroken] = useState(false);
   const [explaineeRows, setExplaineeRows] = useState(1);
 
@@ -40,7 +40,9 @@ function GenerateTraceFromSQL(props) {
     const scheme = event.target.generateTraceFromSql_scheme.value;
     const host = event.target.generateTraceFromSql_host.value;
     const port = event.target.generateTraceFromSql_port.value;
+    const cluster = event.target.generateTraceFromSql_cluster.value;
     const database = event.target.generateTraceFromSql_database.value;
+    const schema = event.target.generateTraceFromSql_schema.value;
     const username = event.target.generateTraceFromSql_username.value;
     const password = event.target.generateTraceFromSql_password.value;
     // request query
@@ -58,9 +60,12 @@ function GenerateTraceFromSQL(props) {
       : `${scheme}://${host}:${port}/api/sql`;
 
     const axios_data = {
-      "query": database
-        ? `SET database = "${database}"; ${query}`
-        : `${query}`
+      "query": [
+        cluster ? `SET cluster = "${cluster}"` : '',
+        database ? `SET database = "${database}"` : '',
+        schema ? `SET schema = "${schema}"` : '',
+        query
+      ].filter((stmt) => stmt !== '').join(";\n")
     };
 
     // Construct the parameters for the axios request.
@@ -239,18 +244,27 @@ function GenerateTraceFromSQL(props) {
         </Col>
       </Form.Group>
       <Form.Group as={Row} className="mb-3">
-        <Form.Label column sm={3}>Server</Form.Label>
+        <Form.Label column sm={3}>Address</Form.Label>
         <Col sm={1}>
           <Form.Control type="input" id="generateTraceFromSql_scheme" defaultValue="http" placeholder="scheme" />
         </Col>
-        <Col sm={5}>
+        <Col sm={7}>
           <Form.Control type="input" id="generateTraceFromSql_host" defaultValue="localhost" placeholder="host" />
         </Col>
         <Col sm={1}>
           <Form.Control type="input" id="generateTraceFromSql_port" defaultValue="6876" placeholder="port" />
         </Col>
-        <Col sm={2}>
-          <Form.Control type="input" id="generateTraceFromSql_database" defaultValue="materialize" placeholder="database" />
+      </Form.Group>
+      <Form.Group as={Row} className="mb-3">
+        <Form.Label column sm={3}>Namespace</Form.Label>
+        <Col sm={3}>
+          <Form.Control type="input" id="generateTraceFromSql_cluster" defaultValue="" placeholder="cluster" />
+        </Col>
+        <Col sm={3}>
+          <Form.Control type="input" id="generateTraceFromSql_database" defaultValue="" placeholder="database" />
+        </Col>
+        <Col sm={3}>
+          <Form.Control type="input" id="generateTraceFromSql_schema" defaultValue="" placeholder="schema" />
         </Col>
       </Form.Group>
       <Form.Group as={Row} className="mb-3">
@@ -258,7 +272,7 @@ function GenerateTraceFromSQL(props) {
         <Col sm={4}>
           <Form.Control type="input" id="generateTraceFromSql_username" placeholder="username" />
         </Col>
-        <Col sm={5}>
+        <Col sm={4}>
           <Form.Control type="password" id="generateTraceFromSql_password" placeholder="password" />
         </Col>
       </Form.Group>
