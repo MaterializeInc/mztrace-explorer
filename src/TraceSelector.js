@@ -29,7 +29,7 @@ export default function TraceSelector(props) {
 
 function GenerateTraceFromSQL(props) {
   const setTrace = useContext(TraceContext).at(1);
-  const [explainConfig, setExplainConfig] = useState(["arity", "join_impls", "humanized_exprs"]);
+  const [explainConfig, setExplainConfig] = useState([/*"arity", "join_impls", "humanized_exprs"*/]);
   const [explainBroken, setExplainBroken] = useState(false);
   const [explaineeRows, setExplaineeRows] = useState(1);
 
