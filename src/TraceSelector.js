@@ -29,7 +29,7 @@ export default function TraceSelector(props) {
 
 function GenerateTraceFromSQL(props) {
   const setTrace = useContext(TraceContext).at(1);
-  const [explainConfig, setExplainConfig] = useState([/*"arity", "join_impls", "humanized_exprs"*/]);
+  const [explainConfig, setExplainConfig] = useState(["arity", "join implementations", "humanized expressions"]);
   const [explainBroken, setExplainBroken] = useState(false);
   const [explaineeRows, setExplaineeRows] = useState(1);
 
@@ -154,23 +154,23 @@ function GenerateTraceFromSQL(props) {
 
   const explainConfigOptions = [
     {
-      key: "linear_chains",
+      key: "linear chains",
       label: <>Restrict output trees to linear chains. Ignored if <code>raw_plans</code> is set.</>
     },
     {
-      key: "no_fast_path",
+      key: "no fast path",
       label: <>Show the slow path plan even if a fast path plan was created. Useful for debugging.</>
     },
     {
-      key: "raw_plans",
+      key: "raw plans",
       label: <>Don't normalize plans before explaining them.</>
     },
     {
-      key: "raw_syntax",
+      key: "raw syntax",
       label: <>Disable virtual syntax in the explanation.</>
     },
     {
-      key: "join_impls",
+      key: "join implementations",
       label: <>Render implemented MIR <code>Join</code> nodes in a way which reflects the implementation.</>
     },
     {
@@ -186,11 +186,11 @@ function GenerateTraceFromSQL(props) {
       label: <>Annotate sub-plans with their relation type.</>
     },
     {
-      key: "non_negative",
+      key: "non negative",
       label: <>Annotate sub-plans with their <code>non_negative</code> value.</>
     },
     {
-      key: "subtree_size",
+      key: "subtree size",
       label: <>Annotate sub-plans with their <code>subtree_size</code> value.</>
     },
     {
@@ -198,7 +198,7 @@ function GenerateTraceFromSQL(props) {
       label: <>Print optimization timings after each stage.</>
     },
     {
-      key: "filter_pushdown",
+      key: "filter pushdown",
       label: <>Show MFP pushdown information.</>
     },
     {
@@ -206,11 +206,11 @@ function GenerateTraceFromSQL(props) {
       label: <>Show cardinality information.</>
     },
     {
-      key: "column_names",
+      key: "column names",
       label: <>Show inferred column names.</>
     },
     {
-      key: "humanized_exprs",
+      key: "humanized expressions",
       label: <>Use inferred column names when rendering scalar and aggregate expressions.</>
     },
   ];
