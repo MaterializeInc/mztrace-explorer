@@ -73,7 +73,8 @@ function TraceNav({ root }) {
           ...explorerState.plans,
           {
             path: trace.index[id].path,
-            plan: trace.index[id].plan
+            plan: trace.index[id].plan,
+            time: trace.index[id].time
           }
         ].slice(-2)
       }));
@@ -98,7 +99,8 @@ function TraceNav({ root }) {
           ...explorerState.plans,
           {
             path: trace.index[id].path,
-            plan: trace.index[id].plan
+            plan: trace.index[id].plan,
+            time: trace.index[id].time
           }
         ].slice(-2)
       }));
@@ -145,7 +147,8 @@ function TraceNav({ root }) {
       plans: [
         {
           path: "SQL query",
-          plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee)
+          plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee),
+          time: ""
         }
       ]
     }));
@@ -218,7 +221,8 @@ function TraceNavNode({ node }) {
         ...explorerState.plans,
         {
           path: trace.index[id].path,
-          plan: trace.index[id].plan
+          plan: trace.index[id].plan,
+          time: trace.index[id].time
         }
       ].slice(-2)
     });
@@ -290,15 +294,13 @@ function TraceView() {
   }, [vbarOffsetIncKeyPress, explorerState.vbarOffset]);
 
   const vbar = "  ".repeat(explorerState.vbarOffset);
-  let path = "";
-  let plan = "";
 
   console.assert(explorerState.plans.length <= 2, "Explorer state has less than two plans");
 
   if (explorerState.plans.length > 0) { // 1 or 2 plans
     const [lhs, rhs] = [explorerState.plans.at(0), explorerState.plans.at(-1)]; // might be the same
 
-    path = diffWords(lhs.path, rhs.path).map((part, i) => {
+    const path = diffWords(lhs.path, rhs.path).map((part, i) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
       const span = <span key={`plan-span-${i}`} className={type}>{part.value}</span>;
       return span;
@@ -308,7 +310,7 @@ function TraceView() {
     const rhs_lines = rhs.plan.trim().split(/\n/);
     const cmp_lines = (l, r) => l.trimStart() === r.trimStart();
     var line_no = 1;
-    plan = diffArrays(lhs_lines, rhs_lines, { comparator: cmp_lines }).flatMap((part) => {
+    const plan = diffArrays(lhs_lines, rhs_lines, { comparator: cmp_lines }).flatMap((part) => {
       const type = part.added ? 'ins' : part.removed ? 'del' : 'same';
       return part.value.map(line => {
         const attributes_pos = line.match(new RegExp(String.raw`( // {.+})$`))?.index || line.length;
@@ -321,6 +323,25 @@ function TraceView() {
         );
       });
     });
+
+    const time = rhs.time ? `${rhs.time}ns` : "unknown";
+
+    return (
+      <>
+        <Row id="explorer">
+          <Col>
+            <h4>{path}</h4>
+            <p>Stage duration: {time}</p>
+            <pre><code className="vbar">{vbar}</code><code className={showAttrs ? 'plan' : 'plan noattrs'}>{plan}</code></pre>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Form.Check type="switch" id="custom-switch" isValid={showAttrs} onChange={(_) => setShowAttrs(toggle => !toggle)} label="Show all attributes" />
+          </Col>
+        </Row>
+      </>
+    );
   } else {
     return (
       <Row id="explorer">
@@ -339,22 +360,6 @@ function TraceView() {
       </Row>
     );
   }
-
-  return (
-    <>
-      <Row id="explorer">
-        <Col>
-          <h4>{path}</h4>
-          <pre><code className="vbar">{vbar}</code><code className={showAttrs ? 'plan' : 'plan noattrs'}>{plan}</code></pre>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Form.Check type="switch" id="custom-switch" isValid={showAttrs} onChange={(_) => setShowAttrs(toggle => !toggle)} label="Show all attributes" />
-        </Col>
-      </Row>
-    </>
-  );
 }
 
 // React hook for key-based navigation.
