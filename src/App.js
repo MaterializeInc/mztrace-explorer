@@ -27,6 +27,120 @@ export default function App(props) {
   );
 }
 
+export function toTraceList(results) {
+  results.rows.map(([time, path, plan], id) => ({
+    id, time, path, plan
+  }));
+}
+
+/* Complete a broken trace entry list emitted by a EXPLAIN statement.
+ *
+ * In particular, we insert special entries designating a missing plan for each
+ * segment that is not closed.
+ */
+export function completeTraceList(traceList) {
+  var openSegments = [];
+  var fixedList = [];
+  var nextId = 0;
+
+  for (const entry of traceList) {
+    console.log(`# ${entry.path}`);
+    const currSegments = entry.path.replace(/~*$/, "").split('/');
+
+    // Find the highest index designating a common prefix between
+    // curr_segments and open_segments.
+    var commonPrefix = 0;
+    for (let i = 0; i < Math.min(openSegments.length, currSegments.length); i++) {
+        if (currSegments[i] === openSegments[i]) {
+          commonPrefix++;
+        } else {
+          break;
+        }
+    }
+
+    switch (openSegments.length - commonPrefix) {
+      case 0:
+        // Happy case: entry.path is a repeated path or a subpath of the last
+        // seen path.
+        console.log(`- repeated path or subpath ${openSegments}`);
+        break;
+      case 1:
+        // Happy case: entry.path is a parent path or a child of the parent path
+        // of the last seen path. Remove the last seen segment.
+        console.log(`- pop segments: ${openSegments.slice(-1)}`);
+        openSegments.pop();
+        break;
+      default:
+        // Bad case: entry.path is a non-direct ancestor on a child of a
+        // non-direct ancestor of the last seen path. We need to insert "MISSING
+        // PLAN" entries for all intermediate paths on the ancestor chain.
+        console.log(`- missing segments before ${entry.path}: ${openSegments.slice(commonPrefix, -1)}`);
+        for (let i = openSegments.length - 1; i > commonPrefix; i--) {
+          console.log(`- dummy segment: ${openSegments.slice(0, i)}`);
+          const path = openSegments.slice(0, i).join("/");
+          const time = fixedList
+            .slice(fixedList.findLastIndex((e) => !e.path.startsWith(`${path}/`)) + 1)
+            .reduce((t, e) => {
+              if (e.path.includes('/', `${path}/`.length)) {
+                return t;
+              } else {
+                return t + parseInt(e.time);
+              }
+            }, 0);
+
+          fixedList.push({
+            id: nextId++,
+            time: time,
+            path: path,
+            plan: "(missing plan)"
+          });
+        }
+
+        // Remove the last seen segment and the segments corresponding to the
+        // missing plan entries added above.
+        openSegments = openSegments.slice(0, commonPrefix);
+    }
+
+    // Add segments opened by the current entry.
+    console.log(`- push segments: ${currSegments.slice(commonPrefix)}`);
+    for (let i = commonPrefix; i < currSegments.length; i++) {
+      openSegments.push(currSegments[i]);
+    }
+
+    // Add the current entry (with adjusted id value) to the fixed list.
+    fixedList.push({...entry, id: nextId++ });
+  }
+
+  if (openSegments.length > 1) {
+    // Bad case: the last seen entry.path was not the root path. We need to insert "MISSING
+    // PLAN" entries for all intermediate paths on the ancestor chain.
+    console.log(`- missing segments at the end: ${openSegments}`);
+    for (let i = openSegments.length - 1; i > 0; i--) {
+      console.log(`- dummy segment: ${openSegments.slice(0, i)}`);
+      const path = openSegments.slice(0, i).join("/");
+      const time = fixedList
+        .slice(fixedList.findLastIndex((e) => !e.path.startsWith(`${path}/`)) + 1)
+        .reduce((t, e) => {
+          if (e.path.includes('/', `${path}/`.length)) {
+            return t;
+          } else {
+            return t + parseInt(e.time);
+          }
+        }, 0);
+
+      fixedList.push({
+        id: nextId++,
+        time: time,
+        path: path,
+        plan: "(missing plan)"
+      });
+    }
+  }
+
+  console.log(fixedList);
+  return fixedList;
+}
+
 /** Convert the given list of traces to a tree-shaped structure. */
 export function toTraceTree(traceList) {
   // initialize root tree
@@ -44,7 +158,7 @@ export function toTraceTree(traceList) {
       path = path.length > 0 ? `${path}/${segment}` : segment;
 
       // ensure that the tree entry associated with that path exists
-      // append a child if 
+      // append a child if
       // 1) the plan is not empty (as setting a plan "seals" the subtree)
       // 2) if the path differs
       if (node.children.at(-1)?.plan || node.children.at(-1)?.path !== path) {

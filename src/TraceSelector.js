@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useContext, useState } from 'react';
 import { Button, Col, Container, Form, Row, Tab, Tabs } from 'react-bootstrap';
 
-import { computeNoopFlag, indexTraceTree, toTraceTree, TraceContext } from './App';
+import { TraceContext, completeTraceList, computeNoopFlag, indexTraceTree, toTraceList, toTraceTree } from './App';
 import './TraceSelector.css';
 
 export default function TraceSelector(props) {
@@ -93,10 +93,7 @@ function GenerateTraceFromSQL(props) {
           throw new Error("results.rows is not defined");
         }
 
-        const list = results.rows.map(([time, path, plan], id) => ({
-          id, time, path, plan
-        }));
-
+        const list = completeTraceList(toTraceList(results));
         const tree = toTraceTree(list);
         const index = indexTraceTree(tree);
 
@@ -302,7 +299,8 @@ function UploadTraceFile(props) {
         // Ensure that the list entries are ordered by id
         trace.list.sort((a, b) => (a.id > b.id) ? 1 : -1);
 
-        const tree = toTraceTree(trace.list);
+        const list = completeTraceList(trace.list);
+        const tree = toTraceTree(list);
         const index = indexTraceTree(tree);
 
         // mark nodes with a plan identical to their predecessor with 'noop: true'
@@ -310,7 +308,7 @@ function UploadTraceFile(props) {
 
         // If everything is fine the index should be for the same number of entries
         // and for the same sequence of paths (we check only the former here).
-        console.assert(trace.list.length === index.length, "Trace list and trace index sizes don't match.");
+        console.assert(list.length === index.length, "Trace list and trace index sizes don't match.");
 
         setTrace({
           explainee: trace.explainee,
