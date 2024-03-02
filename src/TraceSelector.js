@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useContext, useState } from 'react';
 import { Button, Col, Container, Form, Row, Tab, Tabs } from 'react-bootstrap';
 
-import { TraceContext, completeTraceList, computeNoopFlag, indexTraceTree, toTraceList, toTraceTree } from './App';
+import { TraceContext, completeTraceList, computeNoopFlag, extractVersion, indexTraceTree, toTraceList, toTraceTree } from './App';
 import './TraceSelector.css';
 
 export default function TraceSelector(props) {
@@ -64,6 +64,7 @@ function GenerateTraceFromSQL(props) {
         cluster ? `SET cluster = "${cluster}"` : '',
         database ? `SET database = "${database}"` : '',
         schema ? `SET schema = "${schema}"` : '',
+        'SELECT mz_version()',
         query
       ].filter((stmt) => stmt !== '').join(";\n")
     };
@@ -83,17 +84,25 @@ function GenerateTraceFromSQL(props) {
 
     await axios.post(axios_url, axios_data, axios_config).then(function (response) {
       try {
-        const results = response.data.results.at(-1);
+        const versionResult = response.data.results.at(-2);
+        const explainResult = response.data.results.at(-1);
 
-        if (results.error) {
-          throw results.error;
+        if (versionResult.error) {
+          throw versionResult.error;
+        }
+        if (explainResult.error) {
+          throw explainResult.error;
         }
 
-        if (results.rows === undefined) {
-          throw new Error("results.rows is not defined");
+        if (versionResult.rows === undefined) {
+          throw new Error("versionResults.rows is not defined");
+        }
+        if (explainResult.rows === undefined) {
+          throw new Error("explainResults.rows is not defined");
         }
 
-        const list = completeTraceList(toTraceList(results));
+        const version = extractVersion(versionResult);
+        const list = completeTraceList(toTraceList(explainResult));
         const tree = toTraceTree(list);
         const index = indexTraceTree(tree);
 
@@ -105,6 +114,7 @@ function GenerateTraceFromSQL(props) {
         console.assert(list.length === index.length, "Trace list and trace index sizes don't match.");
 
         setTrace({
+          version: version,
           explainee: explainee.toLowerCase().startsWith('view ') ? {
             view: explainee.slice(5)
           } : {
@@ -311,6 +321,7 @@ function UploadTraceFile(props) {
         console.assert(list.length === index.length, "Trace list and trace index sizes don't match.");
 
         setTrace({
+          version: trace.version,
           explainee: trace.explainee,
           tree: tree,
           index: index

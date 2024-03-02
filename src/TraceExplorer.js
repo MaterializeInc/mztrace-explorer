@@ -168,7 +168,7 @@ function TraceNav({ root }) {
     }, null, 4)], { type: "text/plain" });
     // create and click download link
     const link = document.createElement("a");
-    link.download = "trace.json";
+    link.download = trace.version ? `trace.${trace.version}.json` : 'trace.json';
     link.href = URL.createObjectURL(new Blob([data], { type: "text/plain" }));
     link.click();
     link.remove();

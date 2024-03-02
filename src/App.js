@@ -27,8 +27,14 @@ export default function App(props) {
   );
 }
 
-export function toTraceList(results) {
-  return results.rows.map(([time, path, plan], id) => ({
+/* Extract the Materialize version from the `SElECT mz_version()` result. */
+export function extractVersion(result) {
+  return result.rows[0][0].replace(' ', '.').replace('(', '').replace(')', '');
+}
+
+/* Extract a list of trace entries from an `EXPLAIN ...` result. */
+export function toTraceList(result) {
+  return result.rows.map(([time, path, plan], id) => ({
     id, time, path, plan
   }));
 }
