@@ -44,7 +44,6 @@ export function completeTraceList(traceList) {
   var nextId = 0;
 
   for (const entry of traceList) {
-    console.log(`# ${entry.path}`);
     const currSegments = entry.path.replace(/~*$/, "").split('/');
 
     // Find the highest index designating a common prefix between
@@ -62,12 +61,10 @@ export function completeTraceList(traceList) {
       case 0:
         // Happy case: entry.path is a repeated path or a subpath of the last
         // seen path.
-        console.log(`- repeated path or subpath ${openSegments}`);
         break;
       case 1:
         // Happy case: entry.path is a parent path or a child of the parent path
         // of the last seen path. Remove the last seen segment.
-        console.log(`- pop segments: ${openSegments.slice(-1)}`);
         openSegments.pop();
         break;
       default:
@@ -76,7 +73,6 @@ export function completeTraceList(traceList) {
         // PLAN" entries for all intermediate paths on the ancestor chain.
         console.log(`- missing segments before ${entry.path}: ${openSegments.slice(commonPrefix, -1)}`);
         for (let i = openSegments.length - 1; i > commonPrefix; i--) {
-          console.log(`- dummy segment: ${openSegments.slice(0, i)}`);
           const path = openSegments.slice(0, i).join("/");
           const time = fixedList
             .slice(fixedList.findLastIndex((e) => !e.path.startsWith(`${path}/`)) + 1)
@@ -102,7 +98,6 @@ export function completeTraceList(traceList) {
     }
 
     // Add segments opened by the current entry.
-    console.log(`- push segments: ${currSegments.slice(commonPrefix)}`);
     for (let i = commonPrefix; i < currSegments.length; i++) {
       openSegments.push(currSegments[i]);
     }
@@ -116,7 +111,6 @@ export function completeTraceList(traceList) {
     // PLAN" entries for all intermediate paths on the ancestor chain.
     console.log(`- missing segments at the end: ${openSegments}`);
     for (let i = openSegments.length - 1; i > 0; i--) {
-      console.log(`- dummy segment: ${openSegments.slice(0, i)}`);
       const path = openSegments.slice(0, i).join("/");
       const time = fixedList
         .slice(fixedList.findLastIndex((e) => !e.path.startsWith(`${path}/`)) + 1)
@@ -137,7 +131,6 @@ export function completeTraceList(traceList) {
     }
   }
 
-  console.log(fixedList);
   return fixedList;
 }
 
