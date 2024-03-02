@@ -48,7 +48,7 @@ const TraceNavContext = createContext();
 function TraceNav({ root }) {
   const [trace] = useContext(TraceContext);
   const setExplorerState = useContext(TraceExplorerContext).at(1);
-  const [state, setState] = useState({ active: 0, closed: [] });
+  const [state, setState] = useState({ active: 0, closed: [], hideNoop: false });
 
   // key-based navigation state
   const nextKeyPress = useKeyPress("n");
@@ -176,12 +176,20 @@ function TraceNav({ root }) {
     event.preventDefault();
   }
 
+  const toggleNoop = (event) => {
+    setState({
+      ...state,
+      hideNoop: !state.hideNoop
+    });
+  }
+
   return (
     <TraceNavContext.Provider value={[state, setState]}>
       <div>
         <Button className='nav-button' variant="link" onClick={resetExplorer}>reset</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
+        <Button className='nav-button' variant="link" onClick={toggleNoop}>toggle noop</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>{' | '}
         <Button className='nav-button' variant="link" onClick={download}>download</Button>
       </div>
@@ -253,14 +261,14 @@ function TraceNavNode({ node }) {
       onClick={showPlan}>{segment}</Button>;
 
   if (node.children?.length > 0) {
-    return <li>
+    return <li className={state.hideNoop && node.noop ? "d-none" : ""}>
       <span className={state.closed.includes(node.id) ? "caret" : "caret caret-open"} onClick={toggleMenu} data-toggle={node.id} />
       <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>⎘</a></CopyToClipboard>{' '}
       {link}
       <TraceNavChildren children={node.children} parentId={node.id} />
     </li>;
   } else {
-    return <li>
+    return <li className={state.hideNoop && node.noop ? "d-none" : ""}>
       <span className="nocaret" />
       <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>⎘</a></CopyToClipboard>{' '}
       {link}
