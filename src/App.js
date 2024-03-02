@@ -28,7 +28,7 @@ export default function App(props) {
 }
 
 export function toTraceList(results) {
-  results.rows.map(([time, path, plan], id) => ({
+  return results.rows.map(([time, path, plan], id) => ({
     id, time, path, plan
   }));
 }
