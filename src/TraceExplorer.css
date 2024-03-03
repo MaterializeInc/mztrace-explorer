@@ -12,6 +12,16 @@ button.nav-button:hover {
     text-decoration: underline;
 }
 
+button.nav-button.diff-lhs {
+    color: rgba(179, 0, 0, 1);
+    background: rgba(179, 0, 0, 0.05);
+}
+
+button.nav-button.diff-rhs {
+    color: rgba(64, 102, 25, 1);
+    background: rgba(64, 102, 25, 0.05);
+}
+
 ul.trace-nav {
     padding-left: 0;
 }

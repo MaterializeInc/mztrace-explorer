@@ -72,6 +72,7 @@ function TraceNav({ root }) {
         plans: [
           ...explorerState.plans,
           {
+            id: id,
             path: trace.index[id].path,
             plan: trace.index[id].plan,
             time: trace.index[id].time
@@ -98,6 +99,7 @@ function TraceNav({ root }) {
         plans: [
           ...explorerState.plans,
           {
+            id: id,
             path: trace.index[id].path,
             plan: trace.index[id].plan,
             time: trace.index[id].time
@@ -228,6 +230,7 @@ function TraceNavNode({ node }) {
       plans: [
         ...explorerState.plans,
         {
+          id: id,
           path: trace.index[id].path,
           plan: trace.index[id].plan,
           time: trace.index[id].time
@@ -253,12 +256,24 @@ function TraceNavNode({ node }) {
 
   const segment = node.path.split('/').pop();
 
+  var linkClass;
+  if (explorerState.plans.at(-1)?.id === explorerState.plans.at(-2)?.id) {
+    linkClass="nav-button";
+  } else if (explorerState.plans.at(-1)?.id === node.id) {
+    linkClass="nav-button diff-rhs";
+  } else if (explorerState.plans.at(-2)?.id === node.id) {
+    linkClass="nav-button diff-lhs";
+  } else {
+    linkClass="nav-button";
+  }
+
   const link = node.noop
     ? <span>{segment}</span>
     : <Button
-      className="nav-button" variant="link"
-      active={state.active !== undefined && state.active === node.id} data-focus={node.id}
-      onClick={showPlan}>{segment}</Button>;
+        variant="link" className={linkClass}
+        active={state.active !== undefined && state.active === node.id}
+        data-focus={node.id}
+        onClick={showPlan}>{segment}</Button>;
 
   if (node.children?.length > 0) {
     return <li className={state.hideNoop && node.noop ? "d-none" : ""}>
