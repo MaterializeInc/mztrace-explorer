@@ -187,7 +187,7 @@ export function toTraceTree(traceList) {
 /** Create an index to the nodes in the given `traceTree` in ascending post-visit order. */
 export function indexTraceTree(traceTree) {
   let traceIndex = postOrder(traceTree);
-  traceIndex.sort((a, b) => a.id < b.id);
+  console.assert(traceIndex.every((val, i, arr) => !i || (val.id > arr[i - 1].id)));
   return traceIndex;
 }
 

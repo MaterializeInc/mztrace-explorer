@@ -297,6 +297,7 @@ function TraceNavNode({ node }) {
 // TODO: use dot view. Shortlisted options are:
 // 2) https://www.npmjs.com/package/vis-react (demo at https://codesandbox.io/s/3vvy7xqo9m?file=/src/index.js)
 function TraceView() {
+  const [trace] = useContext(TraceContext);
   const [explorerState] = useContext(TraceExplorerContext);
   const [showAttrs, setShowAttrs] = useState(false);
   // key-based navigation state
@@ -348,14 +349,17 @@ function TraceView() {
       });
     });
 
-    const time = rhs.time ? formatDuration(rhs.time) : "unknown";
+    const timeType = (lhs?.id === rhs?.id)
+      ? "stage duration"
+      : "cumulative time of all simple stages between the two selected";
+    const time = formatDuration(diffTime(lhs, rhs, trace.index));
 
     return (
       <>
         <Row id="explorer">
           <Col>
             <h4>{path}</h4>
-            <p>Stage duration: {time}</p>
+            <p>t={time} ({timeType})</p>
             <pre><code className="vbar">{vbar}</code><code className={showAttrs ? 'plan' : 'plan noattrs'}>{plan}</code></pre>
           </Col>
         </Row>
@@ -415,6 +419,29 @@ const useKeyPress = function (targetKey) {
 
   return keyPressed;
 };
+
+/* Format a duration given in nanoseconds into a human-readable string. */
+function diffTime(lhs, rhs, index) {
+  if (lhs?.id === undefined && rhs?.id === undefined) {
+    return undefined;
+  }
+  if (lhs.id === rhs.id) {
+    return lhs.time;
+  }
+
+  let min_id = Math.min(lhs.id, rhs.id);
+  let max_id = Math.max(lhs.id, rhs.id);
+
+  let time = 0;
+  for (let i = min_id + 1; i <= max_id; i++) {
+    // Add together non-composite stages.
+    if (index[i].children?.length === 0) {
+      time += parseInt(index[i].time);
+    }
+  }
+
+  return time;
+}
 
 /* Format a duration given in nanoseconds into a human-readable string. */
 function formatDuration(time) {
