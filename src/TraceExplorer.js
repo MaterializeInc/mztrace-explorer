@@ -148,6 +148,7 @@ function TraceNav({ root }) {
       ...explorerState,
       plans: [
         {
+          id: undefined,
           path: "SQL query",
           plan: trace.explainee.query ? trace.explainee.query : JSON.stringify(trace.explainee),
           time: ""
@@ -347,7 +348,7 @@ function TraceView() {
       });
     });
 
-    const time = rhs.time ? `${rhs.time}ns` : "unknown";
+    const time = rhs.time ? formatDuration(rhs.time) : "unknown";
 
     return (
       <>
@@ -414,3 +415,49 @@ const useKeyPress = function (targetKey) {
 
   return keyPressed;
 };
+
+/* Format a duration given in nanoseconds into a human-readable string. */
+function formatDuration(time) {
+  // Exit early if the given time is undefined or zero.
+  if (time === undefined) {
+    return `undefined`;
+  }
+  if (time === 0) {
+    return `0ns`;
+  }
+
+  // Decompose the time in second and sub-second units.
+  let [ns, µs, ms, s] = [0, 1, 2, 3];
+  let units = new Array(4).fill(0);
+  for (let i = 0; i < 4; i++) {
+    units[i] = time % 1000;
+    time -= units[i];
+    time /= 1000;
+  }
+
+  // Compute whole part (x), fractional part (f), and units (u).
+  let x, f, u;
+  if (units[s]) {
+    x = units[s];
+    f = units[ms] * 1_000_000 + units[µs] * 1_000 + units[ns]
+    u = "s";
+  } else if (units[ms]) {
+    x = units[ms];
+    f = units[µs] * 1_000 + units[ns]
+    u = "ms";
+  } else if (units[µs]) {
+    x = units[µs];
+    f = units[ns]
+    u = "µs";
+  } else {
+    x = units[ns];
+    f = 0;
+    u = "ns";
+  }
+
+  if (f) {
+    return `${x}.${f}${u}`;
+  } else {
+    return `${x}${u}`;
+  }
+}
