@@ -245,6 +245,7 @@ function TraceNavNode({ node }) {
     const id = parseInt(event.target.getAttribute("data-toggle"));
     if (state.closed.includes(id)) {
       setState({
+        ...state,
         closed: state.closed.filter(x => x !== id)
       });
     } else {
