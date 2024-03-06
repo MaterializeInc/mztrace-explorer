@@ -1,4 +1,9 @@
-button.nav-button {
+.trace-nav-top button.nav-button {
+    margin-right: 0.25em;
+    margin-bottom: 1em;
+}
+
+.trace-nav button.nav-button {
     padding: 0;
     margin: 0;
     border: none;

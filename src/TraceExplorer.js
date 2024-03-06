@@ -1,7 +1,9 @@
 import { diffArrays, diffWords } from 'diff';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
+import { ArrowsCollapse, ArrowsExpand, BootstrapReboot, Copy, FileArrowDown, FileDiff, FiletypeSql } from 'react-bootstrap-icons';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+
 
 import { TraceContext } from './App';
 import './TraceExplorer.css';
@@ -188,13 +190,13 @@ function TraceNav({ root }) {
 
   return (
     <TraceNavContext.Provider value={[state, setState]}>
-      <div>
-        <Button className='nav-button' variant="link" onClick={resetExplorer}>reset</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={hideAll}>hide all</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={showAll}>show all</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={toggleNoop}>toggle noop</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={showSQL}>show SQL</Button>{' | '}
-        <Button className='nav-button' variant="link" onClick={download}>download</Button>
+      <div className="trace-nav-top">
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={resetExplorer}><BootstrapReboot title="reset" /></Button>
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={hideAll}><ArrowsCollapse title="hide all" /></Button>
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={showAll}><ArrowsExpand title="show all" /></Button>
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={toggleNoop}><FileDiff title="togle empty diff stages" /></Button>
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={showSQL}><FiletypeSql title="show explainee" /></Button>
+        <Button className='nav-button' variant="outline-primary" size="sm" onClick={download}><FileArrowDown title="download trace as file" /></Button>
       </div>
       <TraceNavChildren children={[root]} parentId={-1} />
     </TraceNavContext.Provider >
@@ -280,14 +282,18 @@ function TraceNavNode({ node }) {
   if (node.children?.length > 0) {
     return <li className={state.hideNoop && node.noop ? "d-none" : ""}>
       <span className={state.closed.includes(node.id) ? "caret" : "caret caret-open"} onClick={toggleMenu} data-toggle={node.id} />
-      <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>⎘</a></CopyToClipboard>{' '}
+      <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>
+        <Copy title="copy plan to clipboard" size="0.8em" /></a>
+      </CopyToClipboard>{' '}
       {link}
       <TraceNavChildren children={node.children} parentId={node.id} />
     </li>;
   } else {
     return <li className={state.hideNoop && node.noop ? "d-none" : ""}>
       <span className="nocaret" />
-      <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>⎘</a></CopyToClipboard>{' '}
+      <CopyToClipboard text={node.path + '\n' + node.plan}><a href={'#' + node.path} onClick={e => e.preventDefault()}>
+        <Copy title="copy plan to clipboard" size="0.8em" /></a>
+      </CopyToClipboard>{' '}
       {link}
     </li>;
   }
@@ -384,7 +390,7 @@ function TraceView() {
             <li>(<strong>d</strong>)ecrement vertical guide</li>
             <li>(<strong>i</strong>)ncrement vertical guide</li>
           </ul>
-          <p>Press the <strong>reset</strong> button on the top of the navigation bar to see this page again.</p>
+          <p>Press the <BootstrapReboot title="reset" /> button on the top of the navigation bar to see this page again.</p>
         </Col>
       </Row>
     );
