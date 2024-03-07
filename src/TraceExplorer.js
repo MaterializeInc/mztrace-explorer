@@ -442,7 +442,7 @@ function diffTime(lhs, rhs, index) {
   let time = 0;
   for (let i = min_id + 1; i <= max_id; i++) {
     // Add together non-composite stages.
-    if (index[i].children?.length === 0) {
+    if (index[i]?.children?.length === 0) {
       time += parseInt(index[i].time);
     }
   }
